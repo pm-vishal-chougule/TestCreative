@@ -50,7 +50,7 @@
                 var js = requestJSON(msg);
                 if (js) {
                     var reqJsonString = "{\"type\":\"request\",\
-                              \"integration_id\":"+integrationId+",\
+                              \"integration_id\":\""+integrationId+"\",\
                               \"data\":"+ js + "}";
                     return reqJsonString;
                 }
@@ -58,7 +58,7 @@
                 var js = responseJSON(msg);
                 if (js) {
                     var respJsonString = "{\"type\":\"response\",\
-                              \"integration_id\":"+integrationId+",\
+                              \"integration_id\":\""+integrationId+"\",\
                               \"data\":"+ js + "}";
                     return respJsonString;
                 }
@@ -177,7 +177,7 @@
       <button onclick="scanQRCode()">Scan QR code</button>
      </div>
       <div class="center">
-         <div style="width: 500px" id="reader"></div>
+         <div style="width: 300px" id="reader"></div>
       </div>
 
 
