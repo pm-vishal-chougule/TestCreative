@@ -20,6 +20,22 @@
   -ms-transform: translateX(-50%);
   transform: translateX(-50%);
 }
+
+.barCodeOuterContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.centered-element {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
   </style>
 
     <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
@@ -118,7 +134,7 @@
         <p></p>
 
     </div>
-    <script src="https://stagingams.pubmatic.com:8443/sdk/monitorjs/app_files/html5-qrcode.min.js"></script>
+    <script src="./../../app_files/html5-qrcode.min.js"></script>
     <script>
         function submitIntegrationId() {
             var integrationId = document.getElementById("integration_id").value;
@@ -176,14 +192,17 @@
       <p>Or scan a QR code</p>
       <button onclick="scanQRCode()">Scan QR code</button>
      </div>
-      <div class="center">
-         <div style="width: 500px" id="reader"></div>
-      </div>
 
+     <div class="barCodeOuterContainer">
+        <div  style="width: 250px; width: 250px; top: 35%; position: absolute;">
+            <div id="reader"></div>
+        </div>
+    </div>
 
     <div class="bottomCenter">
       <p id="conf"></p>
     </div>
+
     <script>
 
         pmMonitor.subscribe((text) => {
