@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<!-- saved from url=(0071)https://ads.pubmatic.com/openbidsdk/monitor/plugins/inapp-ui/index.html -->
+<html>
+
+<head>
+  <style>
+ .center {
+  margin: 0;
+  position: absolute;
+  left: 50%;
+  -ms-transform: translateX(-50%);
+  transform: translateX(-50%);
+  }
+
+.bottomCenter {
+  margin: 0;
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  -ms-transform: translateX(-50%);
+  transform: translateX(-50%);
+}
+  </style>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        // $(document).ready(function () {
+        //     console.log("your app ui is ready");
+        //     broadcast('{"type":"Log","data":[{"message":"In App UI is ready...","line":"","function":"","file":"Monitor","logLevel":"Verbose"}],"source":"monitor"}');
+        // });
+        function requestJSON(argument) {
+            if (argument.includes("Sending an Ad request")) {
+                return argument.match(/{.*}/g);
+            }
+            return null;
+        }
+
+        function responseJSON(argument) {
+            if (argument.includes("Successfully received Ad response from server")) {
+                return argument.match(/{.*}/g);
+            }
+            return null;
+        }
+
+        function fetchValidatorLogs(msg) {
+            console.log(msg);
+
+            if (msg.includes("Sending an Ad request")) {
+                var js = requestJSON(msg);
+                if (js) {
+                    var reqJsonString = "{\"type\":\"request\",\
+                              \"integration_id\":"+integrationId+",\
+                              \"data\":"+ js + "}";
+                    return reqJsonString;
+                }
+            } else if (msg.includes("Successfully received Ad response from server")) {
+                var js = responseJSON(msg);
+                if (js) {
+                    var respJsonString = "{\"type\":\"response\",\
+                              \"integration_id\":"+integrationId+",\
+                              \"data\":"+ js + "}";
+                    return respJsonString;
+                }
+            }
+            /*else if (msg.includes("Bid details :")) {
+                var bid = "Bid details - ".fontcolor("green");;
+                var res = msg.split("Bid details :");
+                return bid + res[1];
+            } else if (msg.includes("Ad server win")) {
+                return msg;
+            } else if (msg.includes("Bid win for partner")) {
+                return msg;
+            }*/
+            return null;
+        }
+
+        function validateLogs(msg) {
+
+            var json = JSON.parse(msg);
+            if (json.data instanceof Array) {
+                json.data.forEach(element => {
+                    var finalMsg = fetchValidatorLogs(decodeURIComponent(element.message));
+                    if(finalMsg){
+                       sendLogs(finalMsg);
+                    }
+                });
+            }
+        }
+
+        function sendLogs(logs) {
+            //POST log/s to validator server
+            let xhr = new XMLHttpRequest();
+            xhr.open("PUT", "https://iaide.herokuapp.com/logconsumer");
+            xhr.setRequestHeader("Accept", "application/json");
+            xhr.setRequestHeader("Content-Type", "application/json");
+            // xhr.setRequestHeader("Access-Control-Request-Method","PUT");
+            // xhr.setRequestHeader("Access-Control-Request-Headers","Content-Type");
+            // xhr.setRequestHeader("Access-Control-Allow-Origin", "https://iaide.herokuapp.com");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    console.log(xhr.status);
+                    console.log(xhr.responseText);
+                }
+            };
+            console.log(logs);
+            xhr.send(logs);
+        }
+    </script>
+</head>
+
+<body>
+
+    <div id="d">
+        <p>
+        </p>
+        <h3>Validator Console</h3>
+        <p></p>
+
+    </div>
+    <script src="https://stagingams.pubmatic.com:8443/sdk/monitorjs/app_files/html5-qrcode.min.js"></script>
+    <script>
+        function submitIntegrationId() {
+            var integrationId = document.getElementById("integration_id").value;
+            document.getElementById("conf").innerHTML = "Integration Id - "+integrationId +". Proceed to validate requests";
+        }
+
+        var html5QrcodeScanner;
+        function onScanSuccess(decodedText, decodedResult) {
+            // Handle on success condition with the decoded text or result.
+            console.log(`Scan result: ${decodedText}`, decodedResult);
+            //  To stop the scanner (video feed) and clear the scan area.
+            integrationId = decodedText;
+            document.getElementById("conf").innerHTML = "Integration Id - "+integrationId +". Proceed to validate requests";
+            html5QrcodeScanner.clear();
+        }
+
+        function onFailureOpeningBarcodeScanner(){
+            //console.log("Failure opening barcode scanner");
+        }
+
+        function scanQRCode(){
+            // alert("Opening barcode scanner");
+            // document.getElementById("result").innerHTML = "started";
+            html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader", { fps: 10, qrbox: 250 });
+            html5QrcodeScanner.render(onScanSuccess, onFailureOpeningBarcodeScanner);
+        }
+
+        function finish() {
+            if(integrationId === undefined) {
+               return;
+            }
+            //finish integration session
+            let xhr = new XMLHttpRequest();
+            let url = "https://iaide.herokuapp.com/integrations/"+integrationId+"/complete";
+            xhr.open("POST", url);
+            xhr.setRequestHeader("Accept", "application/json");
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    console.log(xhr.status);
+                    console.log(xhr.responseText);
+                }
+            };
+            xhr.send();
+        }
+    </script>
+    <p>Enter the integration ID</p>
+     <div>
+       <input type="text" onfocus=this.value='' id="integration_id" value="Integration ID.."/>
+       <button onclick="submitIntegrationId()">Submit</button>
+     </div>
+   
+     <div class="center">
+      <p>Or scan a QR code</p>
+      <button onclick="scanQRCode()">Scan QR code</button>
+     </div>
+      <div class="center">
+         <div style="width: 500px" id="reader"></div>
+      </div>
+
+
+    <div class="bottomCenter">
+      <p id="conf"></p>
+    </div>
+    <script>
+
+        pmMonitor.subscribe((text) => {
+            //receive log from app
+            console.log("registered validator plugin");
+            console.log(text);
+
+            try {
+                // classify logs & prepare json
+                validateLogs(text);
+            } catch (e) {
+                console.log(e.message);
+            }
+        });
+
+    </script>
+
+</body>
+
+</html>
