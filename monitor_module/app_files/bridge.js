@@ -9,13 +9,13 @@
         // iOS -->
 
         try {
-            // if (getSystemOS() === 'iOS') {
-            //     webkit.messageHandlers.native.postMessage(hash);
-            // } else if (getSystemOS() === 'Android') {
-            //     nativeBridge.nativeCall(JSON.stringify(hash));
-            // } else {
-            //     console.log("Host OS is different than Android and iOS, skipping call: " + JSON.stringify(hash));
-            // }
+             if (getSystemOS() === 'iOS') {
+                 webkit.messageHandlers.native.postMessage(hash);
+             } else if (getSystemOS() === 'Android') {
+                 nativeBridge.nativeCall(JSON.stringify(hash));
+             } else {
+                 console.log("Host OS is different than Android and iOS, skipping call: " + JSON.stringify(hash));
+             }
             nativeBridge.nativeCall(JSON.stringify(hash));
         } catch (error) {
             console.log(error.message);
